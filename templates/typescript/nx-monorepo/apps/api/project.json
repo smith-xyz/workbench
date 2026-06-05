@@ -1,0 +1,13 @@
+{
+  "name": "api",
+  "projectType": "application",
+  "targets": {
+    "serve": {
+      "executor": "@nx/js:node",
+      "options": {
+        "buildTarget": "api:build",
+        "watch": true
+      }
+    }
+  }
+}

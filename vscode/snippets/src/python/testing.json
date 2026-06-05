@@ -1,0 +1,148 @@
+{
+	"Testing: Table Driven": {
+		"prefix": "tt-table-driven",
+		"body": [
+			"import pytest",
+			"",
+			"@pytest.mark.parametrize(",
+			"\t\"input_value,expected\",",
+			"\t[",
+			"\t\t(\"5s\", 5),",
+			"\t\t(\"2m\", 120),",
+			"\t\t(\"bad\", None),",
+			"\t],",
+			")",
+			"def test_${1:parse_duration}(input_value: str, expected: int | None) -> None:",
+			"\tif expected is None:",
+			"\t\twith pytest.raises(ValueError):",
+			"\t\t\t${1:parse_duration}(input_value)",
+			"\t\treturn",
+			"\tassert ${1:parse_duration}(input_value) == expected",
+			"\t$0"
+		],
+		"description": "Pytest parametrize table-driven test with multiple cases"
+	},
+	"Testing: Mock": {
+		"prefix": "tt-mock",
+		"body": [
+			"from unittest.mock import MagicMock",
+			"",
+			"def test_${1:order_service}_sends_confirmation() -> None:",
+			"\tnotifier = MagicMock()",
+			"\tservice = ${1:OrderService}(notifier=notifier)",
+			"",
+			"\tservice.confirm_order(\"order-42\")",
+			"",
+			"\tnotifier.send.assert_called_once_with(",
+			"\t\trecipient=\"customer@example.com\",",
+			"\t\tmessage=\"Order order-42 confirmed\",",
+			"\t)",
+			"\t$0"
+		],
+		"description": "unittest.mock MagicMock for isolating dependencies in tests"
+	},
+	"Testing: Fixture": {
+		"prefix": "tt-fixture",
+		"body": [
+			"import pytest",
+			"",
+			"@pytest.fixture",
+			"def ${1:user_repository}() -> ${2:UserRepository}:",
+			"\trepo = ${2:UserRepository}(database=\":memory:\")",
+			"\trepo.create_table()",
+			"\tyield repo",
+			"\trepo.close()",
+			"",
+			"def test_${1:user_repository}_creates_user(${1:user_repository}: ${2:UserRepository}) -> None:",
+			"\tuser = ${1:user_repository}.create(email=\"alice@example.com\")",
+			"\tassert user.email == \"alice@example.com\"",
+			"\t$0"
+		],
+		"description": "Pytest fixture with setup yield and teardown cleanup"
+	},
+	"Testing: Property": {
+		"prefix": "tt-property",
+		"body": [
+			"from hypothesis import given, strategies as st",
+			"",
+			"@given(st.text())",
+			"def test_${1:reverse_string}_involution(input_value: str) -> None:",
+			"\tassert ${1:reverse_string}(${1:reverse_string}(input_value)) == input_value",
+			"\t$0"
+		],
+		"description": "Hypothesis property-based test with generated inputs"
+	},
+	"Testing: Benchmark": {
+		"prefix": "tt-benchmark",
+		"body": [
+			"import pytest",
+			"",
+			"def test_benchmark_${1:encode_json}(benchmark) -> None:",
+			"\tpayload = {",
+			"\t\t\"id\": \"session-9f3a\",",
+			"\t\t\"user\": \"alice\",",
+			"\t\t\"roles\": [\"admin\", \"editor\"],",
+			"\t}",
+			"",
+			"\tresult = benchmark(${1:encode_json}, payload)",
+			"\tassert isinstance(result, bytes)",
+			"\t$0"
+		],
+		"description": "pytest-benchmark timing test for performance-sensitive code"
+	},
+	"Testing: HTTP Mock": {
+		"prefix": "tt-http-mock",
+		"body": [
+			"import json",
+			"import threading",
+			"from http.server import BaseHTTPRequestHandler, HTTPServer",
+			"",
+			"import pytest",
+			"",
+			"@pytest.fixture",
+			"def ${1:weather_api_server}() -> str:",
+			"\tclass Handler(BaseHTTPRequestHandler):",
+			"\t\tdef do_GET(self) -> None:",
+			"\t\t\tif self.path != \"/forecast\":",
+			"\t\t\t\tself.send_error(404)",
+			"\t\t\t\treturn",
+			"\t\t\tbody = json.dumps({\"city\": \"Portland\", \"temp_c\": 18}).encode()",
+			"\t\t\tself.send_response(200)",
+			"\t\t\tself.send_header(\"Content-Type\", \"application/json\")",
+			"\t\t\tself.end_headers()",
+			"\t\t\tself.wfile.write(body)",
+			"",
+			"\t\tdef log_message(self, format: str, *args: object) -> None:",
+			"\t\t\treturn",
+			"",
+			"\tserver = HTTPServer((\"127.0.0.1\", 0), Handler)",
+			"\tthread = threading.Thread(target=server.serve_forever, daemon=True)",
+			"\tthread.start()",
+			"\tbase_url = f\"http://127.0.0.1:{server.server_port}\"",
+			"\tyield base_url",
+			"\tserver.shutdown()",
+			"",
+			"def test_${2:weather_client}_get_forecast(${1:weather_api_server}: str) -> None:",
+			"\tclient = ${2:WeatherClient}(base_url=${1:weather_api_server})",
+			"\tforecast = client.get_forecast(\"Portland\")",
+			"\tassert forecast[\"temp_c\"] == 18",
+			"\t$0"
+		],
+		"description": "Threaded HTTPServer fixture for API client integration tests"
+	},
+	"Testing: Helper": {
+		"prefix": "tt-helper",
+		"body": [
+			"import pytest",
+			"",
+			"def assert_${1:equal_string}(got: str, want: str) -> None:",
+			"\tif got != want:",
+			"\t\tpytest.fail(f\"got {got!r}, want {want!r}\")",
+			"",
+			"def test_${2:slugify}_produces_expected_slug() -> None:",
+			"\tassert_${1:equal_string}(${2:slugify}(\"Hello World!\"), \"hello-world\")",
+			"\t$0"
+		],
+		"description": "Reusable assertion helper function for consistent test failures"
+	}
+}

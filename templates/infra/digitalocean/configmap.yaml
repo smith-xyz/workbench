@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: __SERVICE__-config
+data:
+  LOG_LEVEL: info
+  HTTP_PORT: "8080"

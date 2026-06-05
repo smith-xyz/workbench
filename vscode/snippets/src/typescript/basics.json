@@ -1,0 +1,173 @@
+{
+	"Function": {
+		"prefix": "fn",
+		"body": [
+			"function ${1:name}(${2:args}): ${3:ReturnType} {",
+			"    $0",
+			"}"
+		],
+		"description": "Function with return type"
+	},
+	"Arrow Function": {
+		"prefix": "afn",
+		"body": [
+			"const ${1:name} = (${2:args}): ${3:ReturnType} => {",
+			"    $0",
+			"};"
+		],
+		"description": "Arrow function"
+	},
+	"Async Function": {
+		"prefix": "asyncfn",
+		"body": [
+			"async function ${1:name}(${2:args}): Promise<${3:T}> {",
+			"    $0",
+			"}"
+		],
+		"description": "Async function returning Promise"
+	},
+	"Interface": {
+		"prefix": "interface",
+		"body": [
+			"interface ${1:Name} {",
+			"    $0",
+			"}"
+		],
+		"description": "Interface"
+	},
+	"Type Alias": {
+		"prefix": "type",
+		"body": [
+			"type ${1:Name} = ${2:value};",
+			"$0"
+		],
+		"description": "Type alias"
+	},
+	"Class": {
+		"prefix": "class",
+		"body": [
+			"class ${1:ClassName} {",
+			"    constructor(${2:args}) {",
+			"        $0",
+			"    }",
+			"}"
+		],
+		"description": "Class with constructor"
+	},
+	"Describe (Vitest/Jest)": {
+		"prefix": "describe",
+		"body": [
+			"describe('${1:suite}', () => {",
+			"    $0",
+			"});"
+		],
+		"description": "Test describe block"
+	},
+	"It (Vitest/Jest)": {
+		"prefix": "it",
+		"body": [
+			"it('${1:should do something}', () => {",
+			"    $0",
+			"});"
+		],
+		"description": "Test it block"
+	},
+	"Describe with It Block": {
+		"prefix": "describe-it",
+		"body": [
+			"describe('${1:suite}', () => {",
+			"  it('${2:should do something}', () => {",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "Test describe with it block"
+	},
+	"Try Catch": {
+		"prefix": "try",
+		"body": [
+			"try {",
+			"    $0",
+			"} catch (${1:err}) {",
+			"    ${2:throw err;}",
+			"}"
+		],
+		"description": "Try catch block"
+	},
+	"Console Log": {
+		"prefix": "log",
+		"body": [
+			"console.log(${1:value});",
+			"$0"
+		],
+		"description": "Console log"
+	},
+	"For Of (const)": {
+		"prefix": "forof",
+		"body": [
+			"for (const ${1:item} of ${2:iterable}) {",
+			"    $0",
+			"}"
+		],
+		"description": "for...of loop with const"
+	},
+	"Generator Function": {
+		"prefix": "gen",
+		"body": [
+			"function* ${1:name}(${2:args}): Generator<${3:YieldType}, ${4:ReturnType}, ${5:NextType}> {",
+			"    $0",
+			"}"
+		],
+		"description": "Generator function"
+	},
+	"Generic Function": {
+		"prefix": "generic",
+		"body": [
+			"function ${1:name}<${2:T}>(${3:arg}: ${2:T}): ${2:T} {",
+			"    $0",
+			"}"
+		],
+		"description": "Generic function with type parameter"
+	},
+	"Generic Type": {
+		"prefix": "generictype",
+		"body": [
+			"type ${1:Name}<${2:T}> = ${3:T};",
+			"$0"
+		],
+		"description": "Generic type alias"
+	},
+	"Mapped Type": {
+		"prefix": "mapped",
+		"body": [
+			"type ${1:NewType} = { [K in keyof ${2:Source}]: ${3:Source[K]}; };",
+			"$0"
+		],
+		"description": "Mapped type over keys"
+	},
+	"Conditional Type": {
+		"prefix": "condtype",
+		"body": [
+			"type ${1:Name}<T> = T extends ${2:U} ? ${3:TrueType} : ${4:FalseType};",
+			"$0"
+		],
+		"description": "Conditional type"
+	},
+	"Satisfies": {
+		"prefix": "satisfies",
+		"body": [
+			"const ${1:value} = ${2:expr} satisfies ${3:Type};",
+			"$0"
+		],
+		"description": "satisfies expression"
+	},
+	"Async Generator": {
+		"prefix": "asyncgen",
+		"body": [
+			"async function* ${1:name}(${2:args}): AsyncGenerator<${3:YieldType}, ${4:ReturnType}, ${5:NextType}> {",
+			"    $0",
+			"}"
+		],
+		"description": "Async generator function"
+	}
+}

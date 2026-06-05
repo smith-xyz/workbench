@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG="${WORKBENCH_CONFIG:-$HOME/.config/workbench/config}"
+
+if [ ! -f "$CONFIG" ]; then
+  echo "No config at $CONFIG"
+  echo "Copy templates/config.example there and fill in your values."
+  exit 1
+fi
+source "$CONFIG"
+
+# Find template directories (contain at least one source/config file)
+mapfile -t templates < <(find "$SCRIPT_DIR" -mindepth 2 -type f \( \
+  -name "*.go" -o -name "*.ts" -o -name "*.py" -o -name "*.rs" \
+  -o -name "*.yaml" -o -name "*.toml" -o -name "Makefile" -o -name "Dockerfile" \
+  \) | sed "s|$SCRIPT_DIR/||" | xargs -I{} dirname {} | sort -u)
+
+if [ ${#templates[@]} -eq 0 ]; then
+  echo "No templates found" >&2
+  exit 1
+fi
+
+# Select
+if command -v fzf &>/dev/null; then
+  selected=$(printf '%s\n' "${templates[@]}" | fzf --prompt="Template> " --height=~20) || exit 0
+else
+  echo "Available templates:"
+  for i in "${!templates[@]}"; do
+    printf "  %d) %s\n" $((i + 1)) "${templates[$i]}"
+  done
+  printf "\nSelect [1-%d]: " "${#templates[@]}"
+  read -r num
+  if ! [[ "$num" =~ ^[0-9]+$ ]] || [ "$num" -lt 1 ] || [ "$num" -gt "${#templates[@]}" ]; then
+    echo "Invalid selection" >&2
+    exit 1
+  fi
+  selected="${templates[$((num - 1))]}"
+fi
+
+# Project name
+default_name=$(basename "$selected" | sed 's/-template$//')
+printf "Project name [%s]: " "$default_name"
+read -r project_name
+project_name="${project_name:-$default_name}"
+project_upper=$(echo "$project_name" | tr '[:lower:]-' '[:upper:]_')
+
+out_dir="./$project_name"
+if [ -d "$out_dir" ]; then
+  echo "Already exists: $out_dir" >&2
+  exit 1
+fi
+
+# Copy
+rsync -a --exclude='__pycache__' "$SCRIPT_DIR/$selected/" "$out_dir/"
+
+# Replace tokens
+find "$out_dir" -type f -print0 | while IFS= read -r -d '' file; do
+  if LC_ALL=C file "$file" | grep -q text; then
+    LC_ALL=C sed -i '' \
+      -e "s|__ORG__|${ORG:-}|g" \
+      -e "s|__SERVICE_UPPER__|${project_upper}|g" \
+      -e "s|__SERVICE__|${project_name}|g" \
+      -e "s|__NAMESPACE__|${NAMESPACE:-}|g" \
+      -e "s|__DOMAIN__|${DOMAIN:-}|g" \
+      -e "s|__AWS_ACCOUNT__|${AWS_ACCOUNT:-}|g" \
+      -e "s|__REGISTRY__|${REGISTRY:-}|g" \
+      "$file" 2>/dev/null || true
+  fi
+done
+
+echo ""
+echo "Created: $out_dir"
+echo "Next:    cd $out_dir"

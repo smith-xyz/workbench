@@ -1,0 +1,16 @@
+[Unit]
+Description=Your service (daemon-template)
+After=network-online.target local-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/daemon-template
+EnvironmentFile=-/etc/default/daemon-template
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,17 @@
+bierner.markdown-mermaid
+charliermarsh.ruff
+dbaeumer.vscode-eslint
+eamodio.gitlens
+editorconfig.editorconfig
+esbenp.prettier-vscode
+file-icons.file-icons
+firsttris.vscode-jest-runner
+github.vscode-github-actions
+golang.go
+hashicorp.terraform
+kimkwanka.theme-atomic-dark
+ms-python.debugpy
+ms-python.python
+ms-vscode.makefile-tools
+rust-lang.rust-analyzer
+tamasfe.even-better-toml

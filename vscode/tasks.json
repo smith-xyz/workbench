@@ -1,0 +1,20 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Apply Project Template",
+      "type": "shell",
+      "command": "${env:WORKBENCH_DIR}/vscode/templates/apply.sh",
+      "args": ["${workspaceFolder}/.vscode"],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared" }
+    },
+    {
+      "label": "Scaffold New Project",
+      "type": "shell",
+      "command": "${env:WORKBENCH_DIR}/templates/scaffold",
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "shared", "focus": true }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Your service (__SERVICE__)
+After=network-online.target local-fs.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/__SERVICE__
+EnvironmentFile=-/etc/default/__SERVICE__
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+
+[Install]
+WantedBy=multi-user.target

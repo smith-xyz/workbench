@@ -1,0 +1,4 @@
+tick_interval_secs = 30.0
+health_file = "/tmp/daemon-template-health.json"
+log_json = false
+log_level = "INFO"

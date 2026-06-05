@@ -1,0 +1,131 @@
+{
+	"Functional: Pipe": {
+		"prefix": "fn-pipe",
+		"body": [
+			"function pipe<A>(a: A): A;",
+			"function pipe<A, B>(a: A, f1: (a: A) => B): B;",
+			"function pipe<A, B, C>(a: A, f1: (a: A) => B, f2: (b: B) => C): C;",
+			"function pipe(a: unknown, ...fns: Array<(v: unknown) => unknown>): unknown {",
+			"    return fns.reduce((acc, fn) => fn(acc), a);",
+			"}",
+			"",
+			"const ${1:double} = (n: number): number => n * 2;",
+			"const ${2:increment} = (n: number): number => n + 1;",
+			"",
+			"const result = pipe(${3:1}, ${1:double}, ${2:increment});",
+			"$0"
+		],
+		"description": "Left-to-right function composition via overloaded pipe utility"
+	},
+	"Functional: Map Filter Reduce": {
+		"prefix": "fn-map-filter-reduce",
+		"body": [
+			"function ${1:transform}(items: number[]): number {",
+			"    return items",
+			"        .map((n) => n * ${2:2})",
+			"        .filter((n) => n > ${3:4})",
+			"        .reduce((acc, n) => acc + n, ${4:0});",
+			"}",
+			"",
+			"const items = [${5:1}, ${6:2}, ${7:3}, ${8:4}, ${9:5}];",
+			"const result = ${1:transform}(items);",
+			"$0"
+		],
+		"description": "Array method chain of map, filter, and reduce"
+	},
+	"Functional: Option Chain": {
+		"prefix": "fn-option-chain",
+		"body": [
+			"type Option<T> =",
+			"    | { readonly _tag: 'Some'; readonly value: T }",
+			"    | { readonly _tag: 'None' };",
+			"",
+			"const some = <T>(value: T): Option<T> => ({ _tag: 'Some', value });",
+			"const none = <T>(): Option<T> => ({ _tag: 'None' });",
+			"",
+			"const map = <T, U>(o: Option<T>, fn: (t: T) => U): Option<U> =>",
+			"    o._tag === 'Some' ? some(fn(o.value)) : none();",
+			"",
+			"const flatMap = <T, U>(o: Option<T>, fn: (t: T) => Option<U>): Option<U> =>",
+			"    o._tag === 'Some' ? fn(o.value) : none();",
+			"",
+			"const unwrapOr = <T>(o: Option<T>, defaultValue: T): T =>",
+			"    o._tag === 'Some' ? o.value : defaultValue;",
+			"",
+			"const result = unwrapOr(",
+			"    flatMap(map(some('${1:42}'), Number), (n) => (n > 0 ? some(n * ${2:2}) : none())),",
+			"    ${3:0},",
+			");",
+			"$0"
+		],
+		"description": "fp-ts style Option chaining with map, flatMap, and unwrapOr"
+	},
+	"Functional: Partial": {
+		"prefix": "fn-partial",
+		"body": [
+			"const ${1:add} = (a: number, b: number): number => a + b;",
+			"",
+			"const ${2:partial} = <A, B, C>(fn: (a: A, b: B) => C, a: A) =>",
+			"    (b: B): C => fn(a, b);",
+			"",
+			"const ${3:addFive} = ${2:partial}(${1:add}, ${4:5});",
+			"const result = ${3:addFive}(${5:3});",
+			"$0"
+		],
+		"description": "Partial application via generic higher-order closure"
+	},
+	"Functional: Fold": {
+		"prefix": "fn-fold",
+		"body": [
+			"function fold<T, U>(items: T[], init: U, fn: (acc: U, item: T) => U): U {",
+			"    return items.reduce(fn, init);",
+			"}",
+			"",
+			"function scan<T, U>(items: T[], init: U, fn: (acc: U, item: T) => U): U[] {",
+			"    const out: U[] = [init];",
+			"    let acc = init;",
+			"    for (const item of items) {",
+			"        acc = fn(acc, item);",
+			"        out.push(acc);",
+			"    }",
+			"    return out;",
+			"}",
+			"",
+			"const items = [${1:1}, ${2:2}, ${3:3}, ${4:4}];",
+			"const total = fold(items, ${5:0}, (acc, n) => acc + n);",
+			"const running = scan(items, ${5:0}, (acc, n) => acc + n);",
+			"$0"
+		],
+		"description": "Fold and scan accumulation over an array"
+	},
+	"Functional: Lazy Iter": {
+		"prefix": "fn-lazy-iter",
+		"body": [
+			"function* range(start = 0): Generator<number> {",
+			"    let n = start;",
+			"    while (true) {",
+			"        yield n++;",
+			"    }",
+			"}",
+			"",
+			"function* mapIter<T, U>(source: Iterable<T>, fn: (t: T) => U): Generator<U> {",
+			"    for (const item of source) {",
+			"        yield fn(item);",
+			"    }",
+			"}",
+			"",
+			"function* filterIter<T>(source: Iterable<T>, pred: (t: T) => boolean): Generator<T> {",
+			"    for (const item of source) {",
+			"        if (pred(item)) yield item;",
+			"    }",
+			"}",
+			"",
+			"const result = [...mapIter(",
+			"    filterIter(range(), (n) => n % 2 === 0),",
+			"    (n) => n * n,",
+			")].slice(0, ${1:5});",
+			"$0"
+		],
+		"description": "Lazy generator pipeline with chained map and filter transforms"
+	}
+}

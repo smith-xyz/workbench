@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: __SERVICE__
+  labels:
+    app.kubernetes.io/name: __SERVICE__
+spec:
+  # Replace with your cluster Apps domain, e.g. __SERVICE__-__NAMESPACE__.apps.cluster.example.com
+  host: __SERVICE__-__NAMESPACE__.apps.<cluster-domain>
+  to:
+    kind: Service
+    name: __SERVICE__
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

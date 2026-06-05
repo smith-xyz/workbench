@@ -1,0 +1,72 @@
+{
+	"Function": {
+		"prefix": "def",
+		"body": [
+			"def ${1:name}(${2:args}) -> ${3:None}:",
+			"    $0"
+		],
+		"description": "Function with return type hint"
+	},
+	"Class": {
+		"prefix": "class",
+		"body": [
+			"class ${1:ClassName}:",
+			"    def __init__(self${2:, ${3:args}}):",
+			"        $0"
+		],
+		"description": "Class with __init__"
+	},
+	"Main Guard": {
+		"prefix": "main",
+		"body": [
+			"if __name__ == \"__main__\":",
+			"    $0"
+		],
+		"description": "if __name__ == __main__"
+	},
+	"Pytest Function": {
+		"prefix": "test",
+		"body": [
+			"def test_${1:name}():",
+			"    $0"
+		],
+		"description": "Pytest test function"
+	},
+	"Pytest Fixture": {
+		"prefix": "fixture",
+		"body": [
+			"@pytest.fixture",
+			"def ${1:name}():",
+			"    $0"
+		],
+		"description": "Pytest fixture"
+	},
+	"Dataclass": {
+		"prefix": "dataclass",
+		"body": [
+			"@dataclass",
+			"class ${1:ClassName}:",
+			"    ${2:field}: ${3:type}",
+			"    $0"
+		],
+		"description": "Dataclass"
+	},
+	"Try Except": {
+		"prefix": "try",
+		"body": [
+			"try:",
+			"    $0",
+			"except ${1:Exception} as ${2:e}:",
+			"    ${3:raise}"
+		],
+		"description": "Try except block"
+	},
+	"With Statement": {
+		"prefix": "with",
+		"body": [
+			"with ${1:expr} as ${2:var}:",
+			"    $0"
+		],
+		"description": "With statement"
+	}
+}

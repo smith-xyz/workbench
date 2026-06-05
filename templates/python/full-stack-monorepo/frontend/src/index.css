@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+/* 
+  Tailwind v4 dark mode configuration - ignore linter warnings
+  This is valid Tailwind v4 syntax: https://tailwindcss.com/docs/dark-mode
+*/
+@custom-variant dark (&:where(.dark, .dark *));

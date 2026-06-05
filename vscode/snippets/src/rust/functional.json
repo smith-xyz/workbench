@@ -1,0 +1,110 @@
+{
+	"Functional: Pipe": {
+		"prefix": "fn-pipe",
+		"body": [
+			"struct ${1:Pipe}<T>(T);",
+			"",
+			"impl<T> ${1:Pipe}<T> {",
+			"    fn pipe<U, F: FnOnce(T) -> U>(self, f: F) -> ${1:Pipe}<U> {",
+			"        ${1:Pipe}(f(self.0))",
+			"    }",
+			"}",
+			"",
+			"fn pipe<T>(value: T) -> ${1:Pipe}<T> {",
+			"    ${1:Pipe}(value)",
+			"}",
+			"",
+			"let result = pipe(${2:1})",
+			"    .pipe(|n| n * ${3:2})",
+			"    .pipe(|n| n + ${4:1})",
+			"    .0;",
+			"$0"
+		],
+		"description": "Left-to-right function composition via fluent Pipe wrapper"
+	},
+	"Functional: Map Filter Reduce": {
+		"prefix": "fn-map-filter-reduce",
+		"body": [
+			"fn ${1:process}(items: &[i32]) -> i32 {",
+			"    items",
+			"        .iter()",
+			"        .map(|n| n * ${2:2})",
+			"        .filter(|n| *n > ${3:4})",
+			"        .sum()",
+			"}",
+			"",
+			"let items = vec![${4:1}, ${5:2}, ${6:3}, ${7:4}, ${8:5}];",
+			"let result = ${1:process}(&items);",
+			"$0"
+		],
+		"description": "Iterator chain of map, filter, and reduce over a slice"
+	},
+	"Functional: Option Chain": {
+		"prefix": "fn-option-chain",
+		"body": [
+			"fn ${1:parse_and_double}(input: &str) -> i32 {",
+			"    input",
+			"        .parse::<i32>()",
+			"        .ok()",
+			"        .map(|n| n * ${2:2})",
+			"        .and_then(|n| if n > 0 { Some(n) } else { None })",
+			"        .unwrap_or(${3:0})",
+			"}",
+			"",
+			"let result = ${1:parse_and_double}(\"${4:42}\");",
+			"$0"
+		],
+		"description": "Option combinators with map, and_then, and unwrap_or"
+	},
+	"Functional: Partial": {
+		"prefix": "fn-partial",
+		"body": [
+			"fn ${1:add}(a: i32, b: i32) -> i32 {",
+			"    a + b",
+			"}",
+			"",
+			"fn partial<A: Copy, B, C, F: Fn(A, B) -> C>(f: F, a: A) -> impl Fn(B) -> C {",
+			"    move |b| f(a, b)",
+			"}",
+			"",
+			"let ${2:add_five} = partial(${1:add}, ${3:5});",
+			"let result = ${2:add_five}(${4:3});",
+			"$0"
+		],
+		"description": "Partial application via closure-capturing helper"
+	},
+	"Functional: Fold": {
+		"prefix": "fn-fold",
+		"body": [
+			"let items = vec![${1:1}, ${2:2}, ${3:3}, ${4:4}];",
+			"",
+			"let total: i32 = items.iter().fold(${5:0}, |acc, n| acc + n);",
+			"",
+			"let running: Vec<i32> = items",
+			"    .iter()",
+			"    .scan(${5:0}, |acc, n| {",
+			"        *acc += n;",
+			"        Some(*acc)",
+			"    })",
+			"    .collect();",
+			"$0"
+		],
+		"description": "Fold and scan accumulation using Iterator fold and scan"
+	},
+	"Functional: Lazy Iter": {
+		"prefix": "fn-lazy-iter",
+		"body": [
+			"let result: Vec<i32> = (0..)",
+			"    .filter(|n| n % 2 == 0)",
+			"    .map(|n| n * n)",
+			"    .take(${1:5})",
+			"    .collect();",
+			"",
+			"for value in result {",
+			"    let _ = value;",
+			"}",
+			"$0"
+		],
+		"description": "Lazy infinite iterator with chained filter, map, and take"
+	}
+}

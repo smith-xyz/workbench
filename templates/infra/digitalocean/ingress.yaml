@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: __SERVICE__
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - __SERVICE__.__DOMAIN__
+      secretName: __SERVICE__-tls
+  rules:
+    - host: __SERVICE__.__DOMAIN__
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: __SERVICE__
+                port:
+                  number: 80

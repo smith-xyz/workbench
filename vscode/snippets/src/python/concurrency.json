@@ -1,0 +1,177 @@
+{
+	"Concurrency: Worker Pool": {
+		"prefix": "cc-worker-pool",
+		"body": [
+			"async def ${1:run_worker_pool}(",
+			"    jobs: asyncio.Queue[${2:Job}],",
+			"    worker_count: int,",
+			"    handler: Callable[[${2:Job}], Awaitable[None]],",
+			") -> None:",
+			"    async def worker() -> None:",
+			"        while True:",
+			"            job = await jobs.get()",
+			"            try:",
+			"                await handler(job)",
+			"            finally:",
+			"                jobs.task_done()",
+			"",
+			"    workers = [asyncio.create_task(worker()) for _ in range(worker_count)]",
+			"    await jobs.join()",
+			"    for task in workers:",
+			"        task.cancel()",
+			"    await asyncio.gather(*workers, return_exceptions=True)",
+			"$0"
+		],
+		"description": "Asyncio worker pool draining a job queue with task_done"
+	},
+	"Concurrency: Mutex": {
+		"prefix": "cc-mutex",
+		"body": [
+			"class ${1:Counter}:",
+			"    def __init__(self) -> None:",
+			"        self._lock = asyncio.Lock()",
+			"        self._value = 0",
+			"",
+			"    async def inc(self) -> None:",
+			"        async with self._lock:",
+			"            self._value += 1",
+			"",
+			"    async def value(self) -> int:",
+			"        async with self._lock:",
+			"            return self._value",
+			"$0"
+		],
+		"description": "Asyncio Lock guarding shared mutable state"
+	},
+	"Concurrency: Channel": {
+		"prefix": "cc-channel",
+		"body": [
+			"async def ${1:run_producer_consumer}() -> list[${2:int}]:",
+			"    jobs: asyncio.Queue[${2:int}] = asyncio.Queue(maxsize=${3:10})",
+			"    results: asyncio.Queue[${2:int}] = asyncio.Queue(maxsize=${3:10})",
+			"",
+			"    async def producer() -> None:",
+			"        for i in range(${4:100}):",
+			"            await jobs.put(i)",
+			"        await jobs.put(None)",
+			"",
+			"    async def consumer() -> None:",
+			"        while True:",
+			"            job = await jobs.get()",
+			"            if job is None:",
+			"                break",
+			"            await results.put(job * 2)",
+			"",
+			"    await asyncio.gather(producer(), consumer())",
+			"    collected: list[${2:int}] = []",
+			"    while not results.empty():",
+			"        collected.append(results.get_nowait())",
+			"    return collected",
+			"$0"
+		],
+		"description": "Producer and consumer coordinated via asyncio queues"
+	},
+	"Concurrency: Rate Limiter": {
+		"prefix": "cc-rate-limiter",
+		"body": [
+			"class ${1:TokenBucket}:",
+			"    def __init__(self, rate: float, capacity: int) -> None:",
+			"        self._rate = rate",
+			"        self._capacity = capacity",
+			"        self._tokens = float(capacity)",
+			"        self._updated = time.monotonic()",
+			"        self._lock = asyncio.Lock()",
+			"",
+			"    async def acquire(self) -> None:",
+			"        async with self._lock:",
+			"            now = time.monotonic()",
+			"            elapsed = now - self._updated",
+			"            self._updated = now",
+			"            self._tokens = min(self._capacity, self._tokens + elapsed * self._rate)",
+			"            if self._tokens < 1:",
+			"                await asyncio.sleep((1 - self._tokens) / self._rate)",
+			"                self._tokens = 0",
+			"            else:",
+			"                self._tokens -= 1",
+			"$0"
+		],
+		"description": "Async token-bucket rate limiter with monotonic refill"
+	},
+	"Concurrency: Fan-Out Fan-In": {
+		"prefix": "cc-fan-out-fan-in",
+		"body": [
+			"async def ${1:fan_out_fan_in}(",
+			"    items: list[${2:int}],",
+			"    worker_count: int,",
+			"    transform: Callable[[${2:int}], Awaitable[${3:int}]],",
+			") -> list[${3:int}]:",
+			"    queue: asyncio.Queue[tuple[int, ${2:int}]] = asyncio.Queue()",
+			"    results: dict[int, ${3:int}] = {}",
+			"",
+			"    async def worker() -> None:",
+			"        while True:",
+			"            index, item = await queue.get()",
+			"            try:",
+			"                results[index] = await transform(item)",
+			"            finally:",
+			"                queue.task_done()",
+			"",
+			"    workers = [asyncio.create_task(worker()) for _ in range(worker_count)]",
+			"    for index, item in enumerate(items):",
+			"        await queue.put((index, item))",
+			"    await queue.join()",
+			"    for task in workers:",
+			"        task.cancel()",
+			"    return [results[i] for i in range(len(items))]",
+			"$0"
+		],
+		"description": "Fan tasks to asyncio workers and gather ordered results"
+	},
+	"Concurrency: Context Cancel": {
+		"prefix": "cc-context-cancel",
+		"body": [
+			"async def ${1:run_with_cancel}(",
+			"    work: Callable[[asyncio.Event], Awaitable[None]],",
+			") -> None:",
+			"    stop = asyncio.Event()",
+			"    task = asyncio.create_task(work(stop))",
+			"    try:",
+			"        await task",
+			"    except asyncio.CancelledError:",
+			"        stop.set()",
+			"        with contextlib.suppress(asyncio.CancelledError):",
+			"            await task",
+			"        raise",
+			"$0"
+		],
+		"description": "Propagate cancellation via asyncio.Event and task cancel"
+	},
+	"Concurrency: Async Stream": {
+		"prefix": "cc-async-stream",
+		"body": [
+			"async def ${1:stream_items}() -> AsyncIterator[${2:Item}]:",
+			"    for i in range(${3:100}):",
+			"        yield ${2:Item}(id=i)",
+			"",
+			"async def ${4:consume_stream}() -> None:",
+			"    async for item in ${1:stream_items}():",
+			"        await ${5:process_item}(item)",
+			"$0"
+		],
+		"description": "Async generator stream with async-for consumer loop"
+	},
+	"Concurrency: Semaphore": {
+		"prefix": "cc-semaphore",
+		"body": [
+			"async def ${1:run_with_semaphore}(semaphore: asyncio.Semaphore) -> None:",
+			"    async with semaphore:",
+			"        await ${2:limited_work}()",
+			"",
+			"async def ${3:main}() -> None:",
+			"    semaphore = asyncio.Semaphore(${4:5})",
+			"    await asyncio.gather(*[${1:run_with_semaphore}(semaphore) for _ in range(${5:20})])",
+			"$0"
+		],
+		"description": "Counting semaphore limiting concurrent asyncio tasks"
+	}
+}

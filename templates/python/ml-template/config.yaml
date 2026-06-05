@@ -1,0 +1,24 @@
+# ML Template Configuration
+# This file contains default configuration values that can be overridden
+
+data:
+  train_size: 0.8
+  val_size: 0.1
+  test_size: 0.1
+  random_seed: 42
+
+model:
+  model_type: "linear_regression"
+  hyperparameters: {}
+
+training:
+  batch_size: 32
+  epochs: 100
+  learning_rate: 0.001
+  early_stopping_patience: 10
+
+experiment:
+  experiment_name: "default_experiment"
+  run_name: null
+  tracking_uri: "./mlruns"
+  artifact_location: null

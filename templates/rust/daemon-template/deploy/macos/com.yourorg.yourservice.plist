@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.__ORG__.__SERVICE__</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/daemon-template</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>WorkingDirectory</key>
+    <string>/usr/local/var/__SERVICE__</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>DAEMON_CONFIG</key>
+        <string>/usr/local/etc/__SERVICE__/config.toml</string>
+        <key>RUST_LOG</key>
+        <string>info</string>
+    </dict>
+
+    <key>StandardOutPath</key>
+    <string>/usr/local/var/log/__SERVICE__.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/usr/local/var/log/__SERVICE__.err</string>
+</dict>
+</plist>

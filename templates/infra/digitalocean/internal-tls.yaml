@@ -1,0 +1,29 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: __SERVICE__-selfsigned
+  labels:
+    app.kubernetes.io/name: __SERVICE__
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: __SERVICE__-internal
+  labels:
+    app.kubernetes.io/name: __SERVICE__
+spec:
+  secretName: __SERVICE__-internal-tls
+  duration: 8760h # 1 year
+  renewBefore: 720h # 30 days
+  issuerRef:
+    name: __SERVICE__-selfsigned
+    kind: Issuer
+  dnsNames:
+    - __SERVICE__
+    - __SERVICE__.__NAMESPACE__.svc
+    - __SERVICE__.__NAMESPACE__.svc.cluster.local
+  privateKey:
+    algorithm: ECDSA
+    size: 256

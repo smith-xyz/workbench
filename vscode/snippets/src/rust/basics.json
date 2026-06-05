@@ -1,0 +1,292 @@
+{
+	"Rust Test Module": {
+		"prefix": "testmod",
+		"body": [
+			"#[cfg(test)]",
+			"mod tests {",
+			"    use super::*;",
+			"",
+			"    #[test]",
+			"    fn ${1:test_name}() {",
+			"        $0",
+			"    }",
+			"}"
+		],
+		"description": "Add a Rust test module with a test function"
+	},
+	"Rust New Test": {
+		"prefix": "newtest",
+		"body": [
+			"    #[test]",
+			"    fn ${1:test_name}() {",
+			"        $0",
+			"    }"
+		],
+		"description": "Add a new rust unit test"
+	},
+	"Public Function": {
+		"prefix": "pubfn",
+		"body": [
+			"pub fn ${1:function_name}(${2:args}) -> ${3:ReturnType} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a public function"
+	},
+	"Function": {
+		"prefix": "fn",
+		"body": [
+			"fn ${1:function_name}(${2:args}) -> ${3:ReturnType} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a function"
+	},
+	"Public Struct": {
+		"prefix": "pubstruct",
+		"body": [
+			"pub struct ${1:StructName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a public struct"
+	},
+	"Struct": {
+		"prefix": "struct",
+		"body": [
+			"struct ${1:StructName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a struct"
+	},
+	"Impl Block": {
+		"prefix": "impl",
+		"body": [
+			"impl ${1:TypeName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add an impl block"
+	},
+	"Public Enum": {
+		"prefix": "pubenum",
+		"body": [
+			"pub enum ${1:EnumName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a public enum"
+	},
+	"Enum": {
+		"prefix": "enum",
+		"body": [
+			"enum ${1:EnumName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add an enum"
+	},
+	"Trait": {
+		"prefix": "trait",
+		"body": [
+			"trait ${1:TraitName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a trait"
+	},
+	"Public Trait": {
+		"prefix": "pubtrait",
+		"body": [
+			"pub trait ${1:TraitName} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a public trait"
+	},
+	"Module": {
+		"prefix": "mod",
+		"body": [
+			"mod ${1:module_name} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a module"
+	},
+	"Match Statement": {
+		"prefix": "match",
+		"body": [
+			"match ${1:expression} {",
+			"    $0",
+			"}"
+		],
+		"description": "Add a match statement"
+	},
+	"Result Return": {
+		"prefix": "result",
+		"body": [
+			"Result<${1:T}, ${2:E}>"
+		],
+		"description": "Result type"
+	},
+	"Option Return": {
+		"prefix": "option",
+		"body": [
+			"Option<${1:T}>"
+		],
+		"description": "Option type"
+	},
+	"Unwrap or Return Error": {
+		"prefix": "unwrapor",
+		"body": [
+			"${1:value}.unwrap_or_else(|e| return Err(${2:e}))"
+		],
+		"description": "Unwrap or return error"
+	},
+	"Question Mark Operator": {
+		"prefix": "?",
+		"body": [
+			"${1:value}?;"
+		],
+		"description": "Question mark operator"
+	},
+	"Simple CLI with Args": {
+		"prefix": "clisimple",
+		"body": [
+			"use std::env;",
+			"",
+			"fn main() {",
+			"    let args: Vec<String> = env::args().collect();",
+			"",
+			"    if args.len() < 2 {",
+			"        eprintln!(\"Usage: {} <command> [args...]\", args[0]);",
+			"        std::process::exit(1);",
+			"    }",
+			"",
+			"    let command = &args[1];",
+			"",
+			"    match command.as_str() {",
+			"        $0",
+			"        _ => {",
+			"            eprintln!(\"Unknown command: {}\", command);",
+			"            std::process::exit(1);",
+			"        }",
+			"    }",
+			"}"
+		],
+		"description": "Simple CLI using std::env::args"
+	},
+	"CLI with Clap (Derive)": {
+		"prefix": "clapderive",
+		"body": [
+			"use clap::Parser;",
+			"",
+			"#[derive(Parser, Debug)]",
+			"#[command(name = \"${1:app_name}\")]",
+			"#[command(about = \"${2:A description of what this program does}\", version)]",
+			"struct Args {",
+			"    #[arg(short, long)]",
+			"    ${3:flag}: bool,",
+			"",
+			"    #[arg(short, long)]",
+			"    ${4:option}: Option<String>,",
+			"",
+			"    ${5:positional}: String,",
+			"}",
+			"",
+			"fn main() {",
+			"    let args = Args::parse();",
+			"",
+			"    $0",
+			"}"
+		],
+		"description": "CLI using clap with derive macro"
+	},
+	"CLI with Clap (Builder)": {
+		"prefix": "clapbuilder",
+		"body": [
+			"use clap::{Arg, Command};",
+			"",
+			"fn main() {",
+			"    let matches = Command::new(\"${1:app_name}\")",
+			"        .about(\"${2:A description}\")",
+			"        .version(\"${3:0.1.0}\")",
+			"        .arg(",
+			"            Arg::new(\"${4:input}\")",
+			"                .short('${5:i}')",
+			"                .long(\"${4:input}\")",
+			"                .help(\"${6:Input file or value}\")",
+			"                .required(true)",
+			"        )",
+			"        .arg(",
+			"            Arg::new(\"${7:output}\")",
+			"                .short('${8:o}')",
+			"                .long(\"${7:output}\")",
+			"                .help(\"${9:Output file}\")",
+			"        )",
+			"        .get_matches();",
+			"",
+			"    $0",
+			"}"
+		],
+		"description": "CLI using clap builder pattern"
+	},
+	"CLI with Error Handling": {
+		"prefix": "clierror",
+		"body": [
+			"use std::env;",
+			"",
+			"fn main() -> Result<(), Box<dyn std::error::Error>> {",
+			"    let args: Vec<String> = env::args().collect();",
+			"",
+			"    if args.len() < 2 {",
+			"        return Err(\"Usage: <command> [args...]\".into());",
+			"    }",
+			"",
+			"    $0",
+			"",
+			"    Ok(())",
+			"}"
+		],
+		"description": "CLI with Result error handling"
+	},
+	"Clap Subcommand": {
+		"prefix": "clapsub",
+		"body": [
+			"use clap::{Parser, Subcommand};",
+			"",
+			"#[derive(Parser)]",
+			"#[command(name = \"${1:app_name}\")]",
+			"#[command(about = \"${2:A description}\", version)]",
+			"struct Cli {",
+			"    #[command(subcommand)]",
+			"    command: Commands,",
+			"}",
+			"",
+			"#[derive(Subcommand)]",
+			"enum Commands {",
+			"    ${3:Command1} {",
+			"        ${4:arg}: String,",
+			"    },",
+			"    ${5:Command2} {",
+			"        ${6:flag}: bool,",
+			"    },",
+			"}",
+			"",
+			"fn main() {",
+			"    let cli = Cli::parse();",
+			"",
+			"    match &cli.command {",
+			"        Commands::${3:Command1} { ${4:arg} } => {",
+			"            $0",
+			"        }",
+			"        Commands::${5:Command2} { ${6:flag} } => {",
+			"            ",
+			"        }",
+			"    }",
+			"}"
+		],
+		"description": "CLI with subcommands using clap"
+	}
+}

@@ -1,0 +1,3 @@
+tick_interval_secs = 10
+health_file = "var/health.json"
+log_json = false

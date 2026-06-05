@@ -1,0 +1,10 @@
+# Workbench scaffold config
+# Copy to ~/.config/workbench/config and set your values.
+# Tokens like __ORG__ in templates are replaced automatically.
+# __SERVICE__ and __SERVICE_UPPER__ come from the project name prompt.
+
+ORG=smith-xyz
+NAMESPACE=my-project
+DOMAIN=example.com
+AWS_ACCOUNT=123456789012
+REGISTRY=my-registry

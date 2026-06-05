@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: __SERVICE__
+  labels:
+    app.kubernetes.io/name: __SERVICE__
+  annotations:
+    service.beta.openshift.io/serving-cert-secret-name: __SERVICE__-internal-tls
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: __SERVICE__
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP

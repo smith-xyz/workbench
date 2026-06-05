@@ -1,0 +1,159 @@
+{
+	"Testing: Table Driven": {
+		"prefix": "tt-table-driven",
+		"body": [
+			"import { describe, expect, it } from 'vitest';",
+			"",
+			"describe('${1:parseDuration}', () => {",
+			"  it.each([",
+			"    ['5s', 5],",
+			"    ['2m', 120],",
+			"    ['bad', null],",
+			"  ])('parses %s as %s', (input, expected) => {",
+			"    if (expected === null) {",
+			"      expect(() => ${1:parseDuration}(input)).toThrow();",
+			"      return;",
+			"    }",
+			"    expect(${1:parseDuration}(input)).toBe(expected);",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "Vitest it.each table-driven test with multiple cases"
+	},
+	"Testing: Mock": {
+		"prefix": "tt-mock",
+		"body": [
+			"import { describe, expect, it, vi } from 'vitest';",
+			"",
+			"describe('${1:OrderService}', () => {",
+			"  it('sends confirmation via notifier', () => {",
+			"    const send = vi.fn();",
+			"    const notifier = { send };",
+			"    const service = new ${1:OrderService}(notifier);",
+			"",
+			"    service.confirmOrder('order-42');",
+			"",
+			"    expect(send).toHaveBeenCalledOnce();",
+			"    expect(send).toHaveBeenCalledWith({",
+			"      recipient: 'customer@example.com',",
+			"      message: 'Order order-42 confirmed',",
+			"    });",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "Vitest vi.fn mock for isolating dependencies in unit tests"
+	},
+	"Testing: Fixture": {
+		"prefix": "tt-fixture",
+		"body": [
+			"import { afterEach, beforeEach, describe, expect, it } from 'vitest';",
+			"",
+			"describe('${1:UserRepository}', () => {",
+			"  let repo: ${1:UserRepository};",
+			"",
+			"  beforeEach(async () => {",
+			"    repo = await ${1:UserRepository}.createInMemory();",
+			"    await repo.migrate();",
+			"  });",
+			"",
+			"  afterEach(async () => {",
+			"    await repo.close();",
+			"  });",
+			"",
+			"  it('creates a user', async () => {",
+			"    const user = await repo.create({ email: 'alice@example.com' });",
+			"    expect(user.email).toBe('alice@example.com');",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "Vitest beforeEach/afterEach fixture with setup and teardown"
+	},
+	"Testing: Property": {
+		"prefix": "tt-property",
+		"body": [
+			"import { describe, expect, it } from 'vitest';",
+			"import fc from 'fast-check';",
+			"",
+			"describe('${1:reverseString}', () => {",
+			"  it('reversing twice returns the original', () => {",
+			"    fc.assert(",
+			"      fc.property(fc.string(), (input) => {",
+			"        expect(${1:reverseString}(${1:reverseString}(input))).toBe(input);",
+			"        $0",
+			"      }),",
+			"    );",
+			"  });",
+			"});"
+		],
+		"description": "fast-check property test integrated with Vitest expect"
+	},
+	"Testing: Benchmark": {
+		"prefix": "tt-benchmark",
+		"body": [
+			"import { bench, describe } from 'vitest';",
+			"",
+			"describe('${1:encodeJson}', () => {",
+			"  const payload = {",
+			"    id: 'session-9f3a',",
+			"    user: 'alice',",
+			"    roles: ['admin', 'editor'],",
+			"  };",
+			"",
+			"  bench('${1:encodeJson}', () => {",
+			"    ${1:encodeJson}(payload);",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "Vitest bench function for performance-sensitive code paths"
+	},
+	"Testing: HTTP Mock": {
+		"prefix": "tt-http-mock",
+		"body": [
+			"import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';",
+			"import { http, HttpResponse } from 'msw';",
+			"import { setupServer } from 'msw/node';",
+			"",
+			"const server = setupServer(",
+			"  http.get('https://api.example.com/forecast', () => {",
+			"    return HttpResponse.json({ city: 'Portland', tempC: 18 });",
+			"  }),",
+			");",
+			"",
+			"beforeAll(() => server.listen());",
+			"afterEach(() => server.resetHandlers());",
+			"afterAll(() => server.close());",
+			"",
+			"describe('${1:WeatherClient}', () => {",
+			"  it('fetches forecast from API', async () => {",
+			"    const client = new ${1:WeatherClient}('https://api.example.com');",
+			"    const forecast = await client.getForecast('Portland');",
+			"    expect(forecast.tempC).toBe(18);",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "MSW setupServer mock for API client integration tests"
+	},
+	"Testing: Helper": {
+		"prefix": "tt-helper",
+		"body": [
+			"import { describe, expect, it } from 'vitest';",
+			"",
+			"function expect${1:EqualString}(got: string, want: string): void {",
+			"  expect(got).toBe(want);",
+			"}",
+			"",
+			"describe('${2:slugify}', () => {",
+			"  it('produces expected slug', () => {",
+			"    expect${1:EqualString}(${2:slugify}('Hello World!'), 'hello-world');",
+			"    $0",
+			"  });",
+			"});"
+		],
+		"description": "Reusable expect helper for consistent assertion messages"
+	}
+}

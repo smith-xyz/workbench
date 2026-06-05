@@ -1,0 +1,191 @@
+{
+	"Algorithm: BFS Grid": {
+		"prefix": "al-bfs-grid",
+		"body": [
+			"from collections import deque",
+			"",
+			"def bfs_${1:grid}(${1:grid}: list[list[int]], sr: int, sc: int, tr: int, tc: int) -> int:",
+			"    rows, cols = len(${1:grid}), len(${1:grid}[0])",
+			"    dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]",
+			"    visited = set()",
+			"    q = deque([(sr, sc, 0)])",
+			"    visited.add((sr, sc))",
+			"    while q:",
+			"        r, c, dist = q.popleft()",
+			"        if r == tr and c == tc:",
+			"            return dist",
+			"        for dr, dc in dirs:",
+			"            nr, nc = r + dr, c + dc",
+			"            if nr < 0 or nr >= rows or nc < 0 or nc >= cols:",
+			"                continue",
+			"            if (nr, nc) in visited or ${1:grid}[nr][nc] == ${2:block}:",
+			"                continue",
+			"            visited.add((nr, nc))",
+			"            q.append((nr, nc, dist + 1))",
+			"    $0",
+			"    return -1"
+		],
+		"description": "BFS shortest path on a 2D grid with visited tracking"
+	},
+	"Algorithm: DFS Grid": {
+		"prefix": "al-dfs-grid",
+		"body": [
+			"def dfs_${1:grid}(${1:grid}: list[list[int]], r: int, c: int, visited: set[tuple[int, int]]) -> None:",
+			"    rows, cols = len(${1:grid}), len(${1:grid}[0])",
+			"    dirs = [(0, 1), (0, -1), (1, 0), (-1, 0)]",
+			"    visited.add((r, c))",
+			"    $0",
+			"    for dr, dc in dirs:",
+			"        nr, nc = r + dr, c + dc",
+			"        if nr < 0 or nr >= rows or nc < 0 or nc >= cols:",
+			"            continue",
+			"        if (nr, nc) in visited or ${1:grid}[nr][nc] == ${2:block}:",
+			"            continue",
+			"        dfs_${1:grid}(${1:grid}, nr, nc, visited)",
+			"",
+			"visited: set[tuple[int, int]] = set()",
+			"dfs_${1:grid}(${1:grid}, ${3:0}, ${4:0}, visited)"
+		],
+		"description": "DFS to explore all reachable cells in a 2D grid"
+	},
+	"Algorithm: Sliding Window": {
+		"prefix": "al-sliding-window",
+		"body": [
+			"def sliding_window(${1:nums}: list[int], k: int) -> int:",
+			"    left, result, window = 0, 0, 0",
+			"    for right in range(len(${1:nums})):",
+			"        window += ${1:nums}[right]",
+			"        if right - left + 1 > k:",
+			"            window -= ${1:nums}[left]",
+			"            left += 1",
+			"        if right - left + 1 == k:",
+			"            $0",
+			"            result = max(result, window)",
+			"    return result"
+		],
+		"description": "Fixed-size sliding window over a list"
+	},
+	"Algorithm: Two Pointer": {
+		"prefix": "al-two-pointer",
+		"body": [
+			"def two_pointer(${1:nums}: list[int], ${2:target}: int) -> tuple[int, int]:",
+			"    left, right = 0, len(${1:nums}) - 1",
+			"    while left < right:",
+			"        total = ${1:nums}[left] + ${1:nums}[right]",
+			"        if total == ${2:target}:",
+			"            return left, right",
+			"        if total < ${2:target}:",
+			"            left += 1",
+			"        else:",
+			"            right -= 1",
+			"    $0",
+			"    return -1, -1"
+		],
+		"description": "Converging two pointers on a sorted array"
+	},
+	"Algorithm: Binary Search": {
+		"prefix": "al-binary-search",
+		"body": [
+			"def binary_search(${1:nums}: list[int], ${2:target}: int) -> int:",
+			"    lo, hi = 0, len(${1:nums})",
+			"    while lo < hi:",
+			"        mid = (lo + hi) // 2",
+			"        if ${1:nums}[mid] < ${2:target}:",
+			"            lo = mid + 1",
+			"        else:",
+			"            hi = mid",
+			"    return lo",
+			"",
+			"idx = binary_search(${1:nums}, ${2:target})",
+			"if idx < len(${1:nums}) and ${1:nums}[idx] == ${2:target}:",
+			"    $0"
+		],
+		"description": "Binary search with custom comparator predicate"
+	},
+	"Algorithm: Topological Sort": {
+		"prefix": "al-topological-sort",
+		"body": [
+			"from collections import deque",
+			"",
+			"def topo_sort(n: int, edges: list[tuple[int, int]]) -> list[int]:",
+			"    adj = [[] for _ in range(n)]",
+			"    indeg = [0] * n",
+			"    for u, v in edges:",
+			"        adj[u].append(v)",
+			"        indeg[v] += 1",
+			"    q = deque(i for i in range(n) if indeg[i] == 0)",
+			"    order: list[int] = []",
+			"    while q:",
+			"        u = q.popleft()",
+			"        order.append(u)",
+			"        for v in adj[u]:",
+			"            indeg[v] -= 1",
+			"            if indeg[v] == 0:",
+			"                q.append(v)",
+			"    $0",
+			"    return order if len(order) == n else []"
+		],
+		"description": "Topological sort via Kahn's BFS-based algorithm"
+	},
+	"Algorithm: Union Find": {
+		"prefix": "al-union-find",
+		"body": [
+			"class UnionFind:",
+			"    def __init__(self, n: int) -> None:",
+			"        self.parent = list(range(n))",
+			"        self.rank = [0] * n",
+			"",
+			"    def find(self, x: int) -> int:",
+			"        if self.parent[x] != x:",
+			"            self.parent[x] = self.find(self.parent[x])",
+			"        return self.parent[x]",
+			"",
+			"    def union(self, a: int, b: int) -> bool:",
+			"        ra, rb = self.find(a), self.find(b)",
+			"        if ra == rb:",
+			"            return False",
+			"        if self.rank[ra] < self.rank[rb]:",
+			"            ra, rb = rb, ra",
+			"        self.parent[rb] = ra",
+			"        if self.rank[ra] == self.rank[rb]:",
+			"            self.rank[ra] += 1",
+			"        return True",
+			"",
+			"uf = UnionFind(${1:n})",
+			"$0"
+		],
+		"description": "Disjoint set union with path compression and union by rank"
+	},
+	"Algorithm: Flood Fill": {
+		"prefix": "al-flood-fill",
+		"body": [
+			"def flood_fill(${1:grid}: list[list[int]], r: int, c: int, ${2:old}: int, ${3:new}: int) -> None:",
+			"    rows, cols = len(${1:grid}), len(${1:grid}[0])",
+			"    if r < 0 or r >= rows or c < 0 or c >= cols or ${1:grid}[r][c] != ${2:old}:",
+			"        return",
+			"    ${1:grid}[r][c] = ${3:new}",
+			"    $0",
+			"    flood_fill(${1:grid}, r + 1, c, ${2:old}, ${3:new})",
+			"    flood_fill(${1:grid}, r - 1, c, ${2:old}, ${3:new})",
+			"    flood_fill(${1:grid}, r, c + 1, ${2:old}, ${3:new})",
+			"    flood_fill(${1:grid}, r, c - 1, ${2:old}, ${3:new})"
+		],
+		"description": "Recursive flood fill on a 2D grid"
+	},
+	"Algorithm: Memoize": {
+		"prefix": "al-memoize",
+		"body": [
+			"from functools import cache",
+			"",
+			"@cache",
+			"def solve(n: int) -> int:",
+			"    if n <= ${1:1}:",
+			"        return ${2:1}",
+			"    return ${3:solve(n - 1) + solve(n - 2)}",
+			"",
+			"ans = solve(${4:n})",
+			"$0"
+		],
+		"description": "Top-down DP with functools.cache memoization"
+	}
+}

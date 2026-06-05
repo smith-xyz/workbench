@@ -1,0 +1,33 @@
+# Ignore target directory
+target/
+
+# Ignore .git directory
+.git/
+.gitignore
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore documentation
+README.md
+docs/
+
+# Ignore test files
+tests/
+
+# Ignore temporary files
+*.tmp
+*.log
+
+# Ignore Rust backup files
+**/*.rs.bk
+
+# Ignore Cargo.lock if it's a library (uncomment if needed)
+# Cargo.lock 
