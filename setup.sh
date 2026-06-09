@@ -18,6 +18,42 @@ skip()  { echo -e "${GREEN}[skip]${RESET} $1 already installed"; }
 doing() { echo -e "${YELLOW}[install]${RESET} $1"; }
 die()   { echo -e "${RED}[error]${RESET} $1"; exit 1; }
 
+# ─── Inventory ─────────────────────────────────────────────────────────────────
+
+DEBIAN_DISTROS=(ubuntu debian pop)
+FEDORA_DISTROS=(fedora rhel centos rocky alma)
+
+MACOS_CASKS=(iterm2 docker)
+MACOS_PACKAGES=(go fzf ripgrep fd zoxide neovim stylua shellcheck jq gh gnupg pinentry-mac)
+DEBIAN_PACKAGES=(golang fzf ripgrep fd-find zoxide shellcheck jq gnupg)
+FEDORA_PACKAGES=(golang fzf ripgrep fd-find zoxide neovim ShellCheck jq gh gnupg2)
+FEDORA_DOCKER_PACKAGES=(docker-ce docker-ce-cli containerd.io)
+
+OLLAMA_MODELS_24GB=(devstral-small-2:24b qwen3.6:35b-a3b qwen2.5-coder:7b)  # no deepseek — tight on 24 GB
+OLLAMA_MODELS_48GB=(devstral-small-2:24b qwen3.6:35b-a3b deepseek-r1:32b qwen2.5-coder:7b)
+OLLAMA_CTX_24GB=16384
+OLLAMA_CTX_48GB=32768
+OLLAMA_ENV_FIXED=(OLLAMA_KEEP_ALIVE=0 OLLAMA_FLASH_ATTENTION=1 OLLAMA_KV_CACHE_TYPE=q4_0)
+
+VERSION_REPORT=(
+  "go|go version 2>/dev/null | awk '{print \$3}'"
+  "node|node --version 2>/dev/null"
+  "bun|bun --version 2>/dev/null"
+  "uv|uv --version 2>/dev/null"
+  "rustc|rustc --version 2>/dev/null"
+  "nvim|nvim --version 2>/dev/null | head -1"
+  "ollama|ollama --version 2>/dev/null"
+)
+
+in_list() {
+  local needle=$1 item
+  shift
+  for item in "$@"; do
+    [ "$needle" = "$item" ] && return 0
+  done
+  return 1
+}
+
 # ─── Detect OS ─────────────────────────────────────────────────────────────────
 
 detect_os() {
@@ -26,11 +62,10 @@ detect_os() {
     Linux)
       if [ -f /etc/os-release ]; then
         . /etc/os-release
-        case "$ID" in
-          ubuntu|debian|pop) OS="debian" ;;
-          fedora|rhel|centos|rocky|alma) OS="fedora" ;;
-          *) die "Unsupported Linux distro: $ID" ;;
-        esac
+        if in_list "$ID" "${DEBIAN_DISTROS[@]}"; then OS="debian"
+        elif in_list "$ID" "${FEDORA_DISTROS[@]}"; then OS="fedora"
+        else die "Unsupported Linux distro: $ID"
+        fi
       else
         die "Cannot detect Linux distribution"
       fi
@@ -97,8 +132,8 @@ install_casks() {
   if [ "$OS" != "macos" ]; then return; fi
   info "Checking macOS apps..."
 
-  local casks=(iterm2 docker)
-  for cask in "${casks[@]}"; do
+  local cask
+  for cask in "${MACOS_CASKS[@]}"; do
     if ! brew list --cask "$cask" &>/dev/null; then
       doing "$cask"
       brew install --cask "$cask"
@@ -110,13 +145,15 @@ install_casks() {
 
 # ─── Core CLI tools ───────────────────────────────────────────────────────────
 
+NVIM_MIN_MINOR=10
+
 nvim_version_ok() {
   if ! installed nvim; then return 1; fi
   local ver
   ver=$(nvim --version | head -1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
   local major=${ver%%.*}
   local minor=${ver#*.}
-  [ "$major" -gt 0 ] || [ "$minor" -ge 10 ]
+  [ "$major" -gt 0 ] || [ "$minor" -ge "$NVIM_MIN_MINOR" ]
 }
 
 install_packages() {
@@ -124,11 +161,11 @@ install_packages() {
 
   case "$OS" in
     macos)
-      pkg_install go fzf ripgrep fd zoxide neovim stylua shellcheck jq gh
+      pkg_install "${MACOS_PACKAGES[@]}"
       ;;
     debian)
       sudo apt-get update -qq
-      pkg_install golang fzf ripgrep fd-find zoxide shellcheck jq
+      pkg_install "${DEBIAN_PACKAGES[@]}"
       # fd-find installs as fdfind; symlink to fd
       if installed fdfind && ! installed fd; then
         mkdir -p "$HOME/.local/bin"
@@ -156,7 +193,7 @@ install_packages() {
       ;;
     fedora)
       sudo dnf check-update -q || true
-      pkg_install golang fzf ripgrep fd-find zoxide neovim ShellCheck jq gh
+      pkg_install "${FEDORA_PACKAGES[@]}"
       # fd-find installs as fdfind on some versions
       if installed fdfind && ! installed fd; then
         mkdir -p "$HOME/.local/bin"
@@ -195,7 +232,7 @@ install_containers() {
       if ! installed docker; then
         doing "docker"
         sudo dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo
-        sudo dnf install -y docker-ce docker-ce-cli containerd.io
+        sudo dnf install -y "${FEDORA_DOCKER_PACKAGES[@]}"
         sudo systemctl enable --now docker
         sudo usermod -aG docker "$USER"
       else
@@ -217,7 +254,6 @@ install_nvm() {
 
   # Ensure nvm is loaded and LTS node is available
   export NVM_DIR="$HOME/.nvm"
-  # shellcheck source=/dev/null
   [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
   if ! installed node; then
     doing "node (LTS via nvm)"
@@ -253,7 +289,6 @@ install_rust() {
   if ! installed rustup; then
     doing "rust (rustup)"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-    # shellcheck source=/dev/null
     source "$HOME/.cargo/env"
   else
     skip "rustup"
@@ -290,23 +325,12 @@ configure_ollama_profile() {
   profile=$(detect_ollama_profile)
   case "$profile" in
     24gb)
-      # 24 GB unified: drop deepseek-r1:32b (~20 GB — no KV headroom for CoT).
-      # qwen3.6 covers brainstorm + research (thinking mode). Lower ctx.
-      OLLAMA_MODELS=(
-        devstral-small-2:24b
-        qwen3.6:35b-a3b
-        qwen2.5-coder:7b
-      )
-      OLLAMA_CONTEXT_LENGTH=16384
+      OLLAMA_MODELS=("${OLLAMA_MODELS_24GB[@]}")
+      OLLAMA_CONTEXT_LENGTH=$OLLAMA_CTX_24GB
       ;;
     48gb)
-      OLLAMA_MODELS=(
-        devstral-small-2:24b
-        qwen3.6:35b-a3b
-        deepseek-r1:32b
-        qwen2.5-coder:7b
-      )
-      OLLAMA_CONTEXT_LENGTH=32768
+      OLLAMA_MODELS=("${OLLAMA_MODELS_48GB[@]}")
+      OLLAMA_CONTEXT_LENGTH=$OLLAMA_CTX_48GB
       ;;
     *)
       die "unknown OLLAMA_PROFILE: $profile (use 24gb or 48gb)"
@@ -315,11 +339,34 @@ configure_ollama_profile() {
   info "Ollama profile: $profile (${OLLAMA_CONTEXT_LENGTH} ctx, ${#OLLAMA_MODELS[@]} models)"
 }
 
+write_ollama_env() {
+  local env_file=$1 entry
+  mkdir -p "$(dirname "$env_file")"
+  {
+    echo "# Ollama — profile via OLLAMA_PROFILE in ~/.config/workbench/config"
+    echo "export OLLAMA_CONTEXT_LENGTH=${OLLAMA_CONTEXT_LENGTH}"
+    for entry in "${OLLAMA_ENV_FIXED[@]}"; do
+      echo "export $entry"
+    done
+  } > "$env_file"
+  info "Wrote $env_file"
+}
+
+apply_ollama_launchctl_env() {
+  local entry key val
+  launchctl setenv OLLAMA_CONTEXT_LENGTH "$OLLAMA_CONTEXT_LENGTH"
+  for entry in "${OLLAMA_ENV_FIXED[@]}"; do
+    key="${entry%%=*}"
+    val="${entry#*=}"
+    launchctl setenv "$key" "$val"
+  done
+  info "Restart Ollama app to apply daemon env"
+}
+
 install_ollama() {
   local env_file="${XDG_CONFIG_HOME:-$HOME/.config}/workbench/ollama.env"
   local workbench_config="${WORKBENCH_CONFIG:-$HOME/.config/workbench/config}"
   if [ -f "$workbench_config" ]; then
-    # shellcheck source=/dev/null
     source "$workbench_config"
   fi
 
@@ -339,22 +386,10 @@ install_ollama() {
     skip "ollama"
   fi
 
-  mkdir -p "$(dirname "$env_file")"
-  cat > "$env_file" <<EOF
-# Ollama — profile via OLLAMA_PROFILE in ~/.config/workbench/config
-export OLLAMA_KEEP_ALIVE=0
-export OLLAMA_CONTEXT_LENGTH=${OLLAMA_CONTEXT_LENGTH}
-export OLLAMA_FLASH_ATTENTION=1
-export OLLAMA_KV_CACHE_TYPE=q4_0
-EOF
-  info "Wrote $env_file"
+  write_ollama_env "$env_file"
 
   if [ "$OS" = "macos" ]; then
-    launchctl setenv OLLAMA_KEEP_ALIVE 0
-    launchctl setenv OLLAMA_CONTEXT_LENGTH "$OLLAMA_CONTEXT_LENGTH"
-    launchctl setenv OLLAMA_FLASH_ATTENTION 1
-    launchctl setenv OLLAMA_KV_CACHE_TYPE q4_0
-    info "Restart Ollama app to apply daemon env"
+    apply_ollama_launchctl_env
   fi
 
   if ! ollama list &>/dev/null; then
@@ -392,10 +427,8 @@ install_ollama
 
 echo ""
 info "Done. Toolchain versions:"
-echo "  go:     $(go version 2>/dev/null | awk '{print $3}' || echo 'not found')"
-echo "  node:   $(node --version 2>/dev/null || echo 'not found')"
-echo "  bun:    $(bun --version 2>/dev/null || echo 'not found')"
-echo "  uv:     $(uv --version 2>/dev/null || echo 'not found')"
-echo "  rustc:  $(rustc --version 2>/dev/null || echo 'not found')"
-echo "  nvim:   $(nvim --version 2>/dev/null | head -1 || echo 'not found')"
-echo "  ollama: $(ollama --version 2>/dev/null || echo 'not found')"
+for entry in "${VERSION_REPORT[@]}"; do
+  label="${entry%%|*}"
+  cmd="${entry#*|}"
+  printf '  %-6s %s\n' "$label:" "$(eval "$cmd" || echo 'not found')"
+done
