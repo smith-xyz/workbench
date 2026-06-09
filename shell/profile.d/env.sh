@@ -17,6 +17,12 @@ export PATH="$HOME/.local/bin:$PATH"
 export CLICOLOR=1
 export TERM=xterm-256color
 
+# Ollama (written by make setup → ~/.config/workbench/ollama.env)
+if [ -f "$HOME/.config/workbench/ollama.env" ]; then
+  # shellcheck source=/dev/null
+  . "$HOME/.config/workbench/ollama.env"
+fi
+
 # Go
 if command -v go &>/dev/null; then
   _go_path=$(go env GOPATH)

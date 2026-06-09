@@ -6,7 +6,7 @@ Personal dev environment: editor configs, neovim, shell, toolchain bootstrap, sn
 
 | Command | What it does |
 |---------|-------------|
-| `make setup` | Install toolchain (go, rust, node, bun, uv, docker, podman, neovim, etc.) |
+| `make setup` | Install toolchain (go, rust, node, bun, uv, docker, ollama, etc.) |
 | `make install` | Symlink all configs (vscode, cursor, nvim, shell) |
 | `make extensions` | Install VSCode extensions from list |
 | `make snippets` | Build snippet files from `vscode/snippets/src/` |

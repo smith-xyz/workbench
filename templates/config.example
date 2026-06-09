@@ -8,3 +8,6 @@ NAMESPACE=my-project
 DOMAIN=example.com
 AWS_ACCOUNT=123456789012
 REGISTRY=my-registry
+
+# Ollama model profile: 48gb | 24gb (auto-detects from RAM if unset)
+# OLLAMA_PROFILE=48gb

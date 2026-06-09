@@ -267,6 +267,116 @@ install_rust() {
   fi
 }
 
+# ─── Ollama ───────────────────────────────────────────────────────────────────
+# One heavy model at a time (OLLAMA_KEEP_ALIVE=0). Profile: 48gb | 24gb | auto
+# Override via OLLAMA_PROFILE in ~/.config/workbench/config
+
+detect_ollama_profile() {
+  if [ -n "${OLLAMA_PROFILE:-}" ]; then
+    echo "$OLLAMA_PROFILE"
+    return
+  fi
+  if [ "$OS" = "macos" ]; then
+    local gb
+    gb=$(( $(sysctl -n hw.memsize) / 1024 / 1024 / 1024 ))
+    if [ "$gb" -le 26 ]; then echo "24gb"; else echo "48gb"; fi
+  else
+    echo "48gb"
+  fi
+}
+
+configure_ollama_profile() {
+  local profile
+  profile=$(detect_ollama_profile)
+  case "$profile" in
+    24gb)
+      # 24 GB unified: drop deepseek-r1:32b (~20 GB — no KV headroom for CoT).
+      # qwen3.6 covers brainstorm + research (thinking mode). Lower ctx.
+      OLLAMA_MODELS=(
+        devstral-small-2:24b
+        qwen3.6:35b-a3b
+        qwen2.5-coder:7b
+      )
+      OLLAMA_CONTEXT_LENGTH=16384
+      ;;
+    48gb)
+      OLLAMA_MODELS=(
+        devstral-small-2:24b
+        qwen3.6:35b-a3b
+        deepseek-r1:32b
+        qwen2.5-coder:7b
+      )
+      OLLAMA_CONTEXT_LENGTH=32768
+      ;;
+    *)
+      die "unknown OLLAMA_PROFILE: $profile (use 24gb or 48gb)"
+      ;;
+  esac
+  info "Ollama profile: $profile (${OLLAMA_CONTEXT_LENGTH} ctx, ${#OLLAMA_MODELS[@]} models)"
+}
+
+install_ollama() {
+  local env_file="${XDG_CONFIG_HOME:-$HOME/.config}/workbench/ollama.env"
+  local workbench_config="${WORKBENCH_CONFIG:-$HOME/.config/workbench/config}"
+  if [ -f "$workbench_config" ]; then
+    # shellcheck source=/dev/null
+    source "$workbench_config"
+  fi
+
+  configure_ollama_profile
+
+  if [ "$OS" = "macos" ]; then
+    if ! brew list --cask ollama &>/dev/null; then
+      doing "ollama"
+      brew install --cask ollama
+    else
+      skip "ollama"
+    fi
+  elif ! installed ollama; then
+    doing "ollama"
+    curl -fsSL https://ollama.com/install.sh | sh
+  else
+    skip "ollama"
+  fi
+
+  mkdir -p "$(dirname "$env_file")"
+  cat > "$env_file" <<EOF
+# Ollama — profile via OLLAMA_PROFILE in ~/.config/workbench/config
+export OLLAMA_KEEP_ALIVE=0
+export OLLAMA_CONTEXT_LENGTH=${OLLAMA_CONTEXT_LENGTH}
+export OLLAMA_FLASH_ATTENTION=1
+export OLLAMA_KV_CACHE_TYPE=q4_0
+EOF
+  info "Wrote $env_file"
+
+  if [ "$OS" = "macos" ]; then
+    launchctl setenv OLLAMA_KEEP_ALIVE 0
+    launchctl setenv OLLAMA_CONTEXT_LENGTH "$OLLAMA_CONTEXT_LENGTH"
+    launchctl setenv OLLAMA_FLASH_ATTENTION 1
+    launchctl setenv OLLAMA_KV_CACHE_TYPE q4_0
+    info "Restart Ollama app to apply daemon env"
+  fi
+
+  if ! ollama list &>/dev/null; then
+    info "Ollama daemon not running — start the app, then re-run make setup to sync models"
+    return
+  fi
+
+  local model name
+  for model in "${OLLAMA_MODELS[@]}"; do
+    doing "ollama pull $model"
+    ollama pull "$model"
+  done
+  while IFS= read -r line; do
+    name="${line%% *}"
+    [ -z "$name" ] || [ "$name" = "NAME" ] && continue
+    if ! printf '%s\n' "${OLLAMA_MODELS[@]}" | grep -qxF "$name"; then
+      doing "ollama rm $name"
+      ollama rm "$name"
+    fi
+  done < <(ollama list | tail -n +2)
+}
+
 # ─── Run ──────────────────────────────────────────────────────────────────────
 
 detect_os
@@ -278,6 +388,7 @@ install_nvm
 install_bun
 install_uv
 install_rust
+install_ollama
 
 echo ""
 info "Done. Toolchain versions:"
@@ -287,3 +398,4 @@ echo "  bun:    $(bun --version 2>/dev/null || echo 'not found')"
 echo "  uv:     $(uv --version 2>/dev/null || echo 'not found')"
 echo "  rustc:  $(rustc --version 2>/dev/null || echo 'not found')"
 echo "  nvim:   $(nvim --version 2>/dev/null | head -1 || echo 'not found')"
+echo "  ollama: $(ollama --version 2>/dev/null || echo 'not found')"
