@@ -94,3 +94,46 @@ gh-wip() {
     echo "  $b  ($last)"
   done < <(git branch --format='%(refname:short)')
 }
+
+gh-sync-directory() {
+  local target_dir="${1:-.}"
+  
+  if [[ ! -d "$target_dir" ]]; then
+    echo "Error: Directory '$target_dir' not found" >&2
+    return 1
+  fi
+  
+  local count=0
+  local failed=0
+  local original_dir="$PWD"
+  
+  for repo_path in "$target_dir"/*; do
+    [[ -d "$repo_path" ]] || continue
+    [[ -d "$repo_path/.git" ]] || continue
+    
+    echo "Syncing: $(basename "$repo_path")"
+    (
+      cd "$repo_path" || return 1
+      if gh-sync; then
+        return 0
+      else
+        return 1
+      fi
+    )
+    
+    if [[ $? -eq 0 ]]; then
+      ((count++))
+    else
+      ((failed++))
+      echo "  ✗ Failed: $(basename "$repo_path")" >&2
+    fi
+  done
+  
+  cd "$original_dir" || return 1
+  
+  echo ""
+  echo "Synced: $count repos"
+  [[ $failed -gt 0 ]] && echo "Failed: $failed repos" >&2
+  
+  [[ $failed -eq 0 ]]
+}
